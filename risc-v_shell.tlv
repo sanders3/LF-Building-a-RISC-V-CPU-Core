@@ -57,6 +57,26 @@
    $is_b_instr = $instr[6:2] ==  5'b11000 ;
    $is_j_instr = $instr[6:2] ==  5'b11011 ;
 
+   $opcode = $instr[7:0] ;
+   $rd =  $instr[12:7] ;
+   $funct3 = $instr[15:12] ;
+   $rs1 = $instr[20:15] ;
+   $rs2 = $instr[25:20] ;
+
+   $rd_valid =  $is_r_instr || $is_i_instr || $is_u_instr || $is_j_instr ;
+   $rs1_valid = $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr ;
+   $rs2_valid = $is_r_instr || $is_s_instr || $is_b_instr ;
+   $imm_valid = $is_i_instr || $is_s_instr || $is_b_instr || $is_u_instr || $is_j_instr ;
+
+   $imm[31:0] = $is_i_instr ? { {21{$instr[31]}}, $instr[30:20] } :
+                $is_s_instr ? { {21{$instr[31]}}, $instr[30:25], $instr[11:8], $instr[7]} :
+                $is_b_instr ? { {20{$instr[31]}}, $instr[7], $instr[30:25], $instr[11:8], 1'b0 } :
+                $is_u_instr ? {     $instr[31],   $instr[30:20], $instr[19:12], 12'b0 } :
+                $is_j_instr ? { {12{$instr[31]}}, $instr[19:12], $instr[20], $instr[30:21], 1'b0 } :
+                32'b0 ; // Default
+
+
+   `BOGUS_USE($opcode $rd $funct3 $rs1 $rs2 $rd_valid $rs1_valid $rs2_valid $imm_valid $imm)
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = 1'b0;
    *failed = *cyc_cnt > M4_MAX_CYC;

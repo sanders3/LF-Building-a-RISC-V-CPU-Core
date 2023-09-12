@@ -86,6 +86,7 @@
    $is_addi = $dec_bits ==? 11'bx_000_0010011 ;
    $is_add  = $dec_bits ==? 11'b0_000_0110011 ;
 
+
    `BOGUS_USE($opcode $rd $funct3 $rs1 $rs2 $rd_valid $rs1_valid $rs2_valid $imm_valid $imm 
               $is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add)
 
@@ -94,7 +95,7 @@
    *passed = 1'b0;
    *failed = *cyc_cnt > M4_MAX_CYC;
    
-   //m4+rf(32, 32, $reset, $wr_en, $wr_index[4:0], $wr_data[31:0], $rd1_en, $rd1_index[4:0], $rd1_data, $rd2_en, $rd2_index[4:0], $rd2_data)
+   m4+rf(32, 32, $reset, $wr_en, $wr_index[4:0], $wr_data[31:0], $rs1_valid, $rs1[4:0], $src1_value, $rs2_valid, $rs1[4:0], $src2_value)
    //m4+dmem(32, 32, $reset, $addr[4:0], $wr_en, $wr_data[31:0], $rd_en, $rd_data)
    m4+cpu_viz()
 \SV

@@ -18,6 +18,8 @@
    $next_pc[31:0] =
       $reset ? 0 :
       $taken_br ? $br_tgt_pc :
+      $is_jal ? $br_tgt_pc :
+      $is_jalr ? $jalr_tgt_pc :
       ( $pc[31:0] + 4) ;
    
    $pc[31:0] = >>1$next_pc ;
@@ -25,7 +27,9 @@
 
    $is_u_instr = $instr[6:2] ==? 5'b0x101 ;
    $is_i_instr = $instr[6:2] ==? 5'b0000x ||
-                 $instr[6:2] ==? 5'b001x0 ;
+                 $instr[6:2] ==? 5'b001x0 ||
+                 $instr[6:2] ==? 5'b11001 ||
+                 $instr[6:2] ==? 5'b11100 ;
    $is_r_instr = $instr[6:2] ==  5'b01011 ||
                  $instr[6:2] ==? 5'b011x0 ||
                  $instr[6:2] ==  5'b10100 ;
@@ -131,13 +135,13 @@
 
        $is_lui   ? {$imm[31:12], 12'b0 } :
        $is_auipc ? $pc + $imm :
-       $is_jal   ? $pc + 32'd4 : // fudged?
-       $is_jalr  ? $pc + 32'd4 : // fudged?
+       $is_jal   ? $pc + 32'd4 : // save next pc location on return
+       $is_jalr  ? $pc + 32'd4 : // save next pc location on return
 
        $is_slt   ? ( ($src1_value[31] == $src2_value[31]) ?
                          $sltu_rslt :
                          {31'b0, $src1_value[31]} ) :
-       $is_slti  ? ( ($src1_value[31] == $imm) ?
+       $is_slti  ? ( ($src1_value[31] == $imm[31]) ?
                          $sltiu_rslt :
                          {31'b0, $src1_value[31]} ) :
        $is_sra   ? $sra_rslt[31:0] :
@@ -155,9 +159,10 @@
        $is_bgeu ? ($src1_value >= $src2_value) :
        0 ;
 
+   $jalr_tgt_pc[31:0] = $src1_value + $imm ;
    $br_tgt_pc[31:0] = $pc + $imm ;
 
-   `BOGUS_USE($opcode $funct3 $imm_valid)
+   `BOGUS_USE($imm_valid)
 
    // Assert these to end simulation (before Makerchip cycle limit).
    m4+tb()
